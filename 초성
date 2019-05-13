@@ -1,0 +1,248 @@
+int BreakHan(wchar_t *str, wchar_t *buffer, UINT nSize)	//한글 한글자에 대해 초성,중성, 종성을 하나하나 분리해주는 함수 
+{ 
+	int head_Index,mid_Index,tail_Index;
+	//초성에 대한 정보
+	static const wchar_t wcHead[] = {L'ㄱ', L'ㄲ', L'ㄴ', L'ㄷ', 
+		L'ㄸ', L'ㄹ', L'ㅁ', L'ㅂ', 
+		L'ㅃ', L'ㅅ', L'ㅆ', L'ㅇ', 
+		L'ㅈ', L'ㅉ', L'ㅊ', L'ㅋ', 
+		L'ㅌ', L'ㅍ', L'ㅎ'};
+
+	//중성에 대한 정보
+	static const wchar_t wcMid[] = {L'ㅏ', L'ㅐ', L'ㅑ', L'ㅒ', 
+		L'ㅓ', L'ㅔ', L'ㅕ', L'ㅖ', 
+		L'ㅗ', L'ㅘ', L'ㅙ', L'ㅚ', 
+		L'ㅛ', L'ㅜ', L'ㅝ', L'ㅞ', 
+		L'ㅟ', L'ㅠ', L'ㅡ', L'ㅢ', L'ㅣ'};
+
+	//종성에 대한 정보
+	static const wchar_t wcTail[] = {L' ', L'ㄱ', L'ㄲ', L'ㄳ', 
+		L'ㄴ', L'ㄵ', L'ㄶ', L'ㄷ', 
+		L'ㄹ', L'ㄺ', L'ㄻ', L'ㄼ', 
+		L'ㄽ', L'ㄾ', L'ㄿ', L'ㅀ', 
+		L'ㅁ', L'ㅂ', L'ㅄ', L'ㅅ', 
+		L'ㅆ', L'ㅇ', L'ㅈ', L'ㅊ', 
+		L'ㅋ', L'ㅌ', L'ㅍ', L'ㅎ'};
+
+	UINT    pos = 0;
+	while(*str != '\0') 
+	{
+		head_Index = (*str - 0xAC00) / (21*28);			//한글 한글자의 초성
+		mid_Index = (*str - 0xAC00) % (21 * 28) / 28;	//중성
+		tail_Index = (*str - 0xAC00) % 28;				//종성
+
+		if(*str < 256)					//str이 한글이 아니라면
+		{ 
+			if(pos+2 >= nSize-1)	
+				break;
+
+			buffer[pos] = *str;		//str의 한글자를 buffer에 저장
+			++pos;		//분리한 글자 개수
+			++str;		//str문장의 다음 글자
+		} 
+		else 
+		{ 
+			if(pos+4 >= nSize-1) 
+				break;
+			//초성 1개 중성 1개 
+			if(mid_Index < 9 || mid_Index == 12 || mid_Index == 13 ||mid_Index ==17||mid_Index == 18||mid_Index == 20)
+			{
+				//종성 0개
+				if(tail_Index == 0)
+				{
+					buffer[pos] = wcHead[head_Index]; 
+					buffer[pos+1] = wcMid[mid_Index];
+					pos+= 2;
+				}
+				//종성 1개
+				else if(tail_Index == 1 ||tail_Index ==2||tail_Index == 4||tail_Index == 6||tail_Index == 7||tail_Index == 8||tail_Index == 16||tail_Index == 17||tail_Index >= 19 )  
+				{
+					buffer[pos] = wcHead[head_Index]; 
+					buffer[pos+1] = wcMid[mid_Index]; 
+					buffer[pos+2] = wcTail[tail_Index];
+					pos+=3;
+				}
+				//종성 2개
+				else
+				{
+					buffer[pos] = wcHead[head_Index]; 
+					buffer[pos+1] = wcMid[mid_Index]; 
+					switch(tail_Index)
+					{
+					case 3:
+						buffer[pos+2] = wcTail[1];
+						buffer[pos+3] = wcTail[19];
+						pos+= 4;
+						break;
+					case 5:
+						buffer[pos+2] = wcTail[4];
+						buffer[pos+3] = wcTail[22];
+						pos+= 4;
+						break;
+					case 6:
+						buffer[pos+2] = wcTail[4];
+						buffer[pos+3] = wcTail[27];
+						pos+= 4;
+						break;
+					case 9:
+						buffer[pos+2] = wcTail[8];
+						buffer[pos+3] = wcTail[1];
+						pos+= 4;
+						break;
+					case 10:
+						buffer[pos+2] = wcTail[8];
+						buffer[pos+3] = wcTail[16];
+						pos+= 4;
+						break;
+					case 11:
+						buffer[pos+2] = wcTail[8];
+						buffer[pos+3] = wcTail[17];
+						pos+= 4;
+						break;
+					case 12:
+						buffer[pos+2] = wcTail[8];
+						buffer[pos+3] = wcTail[19];
+						pos+= 4;
+						break;
+					case 13:
+						buffer[pos+2] = wcTail[8];
+						buffer[pos+3] = wcTail[25];
+						pos+= 4;
+						break;
+					case 14:
+						buffer[pos+2] = wcTail[8];
+						buffer[pos+3] = wcTail[26];
+						pos+= 4;
+						break;
+					case 15:
+						buffer[pos+2] = wcTail[8];
+						buffer[pos+3] = wcTail[27];
+						pos+= 4;
+						break;
+					case 18:
+						buffer[pos+2] = wcTail[17];
+						buffer[pos+3] = wcTail[19];
+						pos+= 4;
+						break;
+					}
+				}
+
+			}
+			//초성 1개 중성 2개 종성 2개
+			else
+			{
+				buffer[pos] = wcHead[head_Index];
+				switch(mid_Index)
+				{
+				case 9:
+					buffer[pos+1] = wcMid[8];
+					buffer[pos+2] = wcMid[0];
+					break;
+				case 10:
+					buffer[pos+1] = wcMid[8];
+					buffer[pos+2] = wcMid[1];
+					break;
+				case 11:
+					buffer[pos+1] = wcMid[8];
+					buffer[pos+2] = wcMid[20];
+					break;
+				case 14:
+					buffer[pos+1] = wcMid[13];
+					buffer[pos+2] = wcMid[4];
+					break;
+				case 15:
+					buffer[pos+1] = wcMid[13];
+					buffer[pos+2] = wcMid[4];
+					break;
+				case 16:
+					buffer[pos+1] = wcMid[13];
+					buffer[pos+2] = wcMid[20];
+					break;
+				case 19:
+					buffer[pos+1] = wcMid[18];
+					buffer[pos+2] = wcMid[20];
+					break;
+				}
+				//종성 0개
+				if(tail_Index == 0)
+				{
+					pos+= 3;
+				}
+				//종성 1개
+				else if(tail_Index == 1 ||tail_Index ==2||tail_Index == 4||tail_Index == 6||tail_Index == 8||tail_Index == 7||tail_Index == 16||tail_Index == 17||tail_Index >= 19 )  
+				{
+					buffer[pos+3] = wcTail[tail_Index];
+					pos+=4;
+				}
+				//종성 2개
+				else
+				{
+					switch(tail_Index)
+					{
+					case 3:
+						buffer[pos+3] = wcTail[1];
+						buffer[pos+4] = wcTail[19];
+						pos+= 5;
+						break;
+					case 5:
+						buffer[pos+3] = wcTail[4];
+						buffer[pos+4] = wcTail[22];
+						pos+= 5;
+						break;
+					case 6:
+						buffer[pos+3] = wcTail[4];
+						buffer[pos+4] = wcTail[27];
+						pos+= 5;
+						break;
+					case 9:
+						buffer[pos+3] = wcTail[8];
+						buffer[pos+4] = wcTail[1];
+						pos+= 5;
+						break;
+					case 10:
+						buffer[pos+3] = wcTail[8];
+						buffer[pos+4] = wcTail[16];
+						pos+= 5;
+						break;
+					case 11:
+						buffer[pos+3] = wcTail[8];
+						buffer[pos+4] = wcTail[17];
+						pos+= 5;
+						break;
+					case 12:
+						buffer[pos+3] = wcTail[8];
+						buffer[pos+4] = wcTail[19];
+						pos+= 5;
+						break;
+					case 13:
+						buffer[pos+3] = wcTail[8];
+						buffer[pos+4] = wcTail[25];
+						pos+= 5;
+						break;
+					case 14:
+						buffer[pos+3] = wcTail[8];
+						buffer[pos+4] = wcTail[26];
+						pos+= 5;
+						break;
+					case 15:
+						buffer[pos+3] = wcTail[8];
+						buffer[pos+4] = wcTail[27];
+						pos+= 5;
+						break;
+					case 18:
+						buffer[pos+3] = wcTail[17];
+						buffer[pos+4] = wcTail[19];
+						pos+= 5;
+						break;
+					}
+				}
+			}
+
+			++str; 
+		}
+
+	}
+	buffer[pos] = '\0'; 
+	return pos;// 문자열에 포함되어 있는 글자수를 반환하고 종료
+
+}
